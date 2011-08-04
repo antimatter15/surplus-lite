@@ -4,22 +4,84 @@
 </head>
 <body>
   <style>
+  
+    a {
+      color: #36C;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    #container > a {
+      text-decoration: none !important;
+    }
     .item {
-      height: 40px;
-      padding: 10px 19px 10px 9px;
+      padding: 10px 21px 11px 21px;
       background: #EEF0F9;
       color: #666;
       border-top: 1px solid #DDDFE7;
       outline: none;
+      min-height: 30px;
+      cursor: pointer;
+    }
+    .item a {
+      color: #666;
+    }
+    
+    .item.unread a {
+      color: #36C;
+    }
+    
+    #container:first-child {
+      border-top: none;
+    }
+    .item.unread {
+      background: #fff;
+      color: #000;
     }
     .item img{
       display: inline-block;
+      float: left;
+      margin-right: 10px;
+      vertical-align: middle;
+      width: 35px;
+      height: 35px;
+    }
+    body {
+      font: normal 13px arial,sans-serif;
+      width: 440px;
+      padding: 0;
+      margin: 0;
+    }
+    .icon {
+      float: right;
+      margin: 9px 10px 0 5px;
+      display: inline-block;
+      height: 16px;
+      vertical-align: middle;
+      width: 16px;
+    }
+    .stream {
+      background: no-repeat url(https://ssl.gstatic.com/s2/oz/images/sprites/nots-3d63e592ca521cd8e0940a2743e4cc4e.png) -83px 0;
+    }
+    .circles {
+      background: no-repeat url(https://ssl.gstatic.com/s2/oz/images/sprites/nots-3d63e592ca521cd8e0940a2743e4cc4e.png) -100px 0;
+    }
+    .chevron {
+      background-image: url('https://ssl.gstatic.com/s2/oz/images/notifications/sprite1.png');
+      background-position: -64px 16px;
+      display: inline-block;
+      float: right;
+      margin: 10px 0;
+      width: 7px;
+      height: 13px;
+      vertical-align: middle;
     }
   </style>
-  <div>
-    <div class="item">
-      <img src="img/48.png"> Blargleflargve
-    </div>
+  
+  <div id="container">
+    <center>Loading...</center>
   </div>
   <script src="parse.js"></script>
   <script>
@@ -27,6 +89,30 @@
     xhr.open('get', 'https://plus.google.com/u/0/_/notifications/getnotificationsdata', true);
     xhr.onload = function(){
       var n = parseNotifications(eval(xhr.responseText.substr(5))) //TODO: use something other than EVAL to parse the malformed JSON
+      document.getElementById('container').innerHTML = '';
+      for(var i = 0; i < n.length; i++){
+        var l = document.createElement('a');
+        var div = document.createElement('div');
+        div.className = 'item '+(n[i].unread?'unread':'');
+        var img = document.createElement('img');
+        img.src = n[i].pic;
+        div.appendChild(img);
+        var chevron = document.createElement('div');
+        chevron.className = 'chevron';
+        div.appendChild(chevron);
+        var icon = document.createElement('span');
+        icon.className = 'icon '+(n[i].url?'stream':'circles');
+        div.appendChild(icon);
+        var text = document.createElement('div');
+        text.innerHTML = n[i].html;
+        div.appendChild(text);
+        
+        l.target = '_blank';
+        l.href = n[i].url || 'https://plus.google.com/circles';
+        l.appendChild(div);
+        
+        document.getElementById('container').appendChild(l);
+      }
     }
     xhr.send();
     
