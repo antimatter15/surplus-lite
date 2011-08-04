@@ -16,8 +16,12 @@
     #container > a {
       text-decoration: none !important;
     }
+    #container {
+      height: 500px;
+      overflow: auto;
+    }
     .item {
-      padding: 10px 21px 11px 21px;
+      padding: 14px 21px 14px 21px;
       background: #EEF0F9;
       color: #666;
       border-top: 1px solid #DDDFE7;
@@ -33,9 +37,6 @@
       color: #36C;
     }
     
-    #container:first-child {
-      border-top: none;
-    }
     .item.unread {
       background: #fff;
       color: #000;
@@ -78,45 +79,75 @@
       height: 13px;
       vertical-align: middle;
     }
+    #header {
+      padding: 18px 19px 17px 19px;
+      vertical-align: middle;
+    }
   </style>
-  
+  <div id="header">
+    <a href="javascript:updatelastreadtime()" style="float:right">Mark all read</a>
+    <span style="font-size:110%;font-weight:bold">Notifications</span>
+  </div>
   <div id="container">
     <center>Loading...</center>
   </div>
   <script src="parse.js"></script>
   <script>
-    var xhr = new XMLHttpRequest();
-    xhr.open('get', 'https://plus.google.com/u/0/_/notifications/getnotificationsdata', true);
-    xhr.onload = function(){
-      var n = parseNotifications(eval(xhr.responseText.substr(5))) //TODO: use something other than EVAL to parse the malformed JSON
-      document.getElementById('container').innerHTML = '';
-      for(var i = 0; i < n.length; i++){
-        var l = document.createElement('a');
-        var div = document.createElement('div');
-        div.className = 'item '+(n[i].unread?'unread':'');
-        var img = document.createElement('img');
-        img.src = n[i].pic;
-        div.appendChild(img);
-        var chevron = document.createElement('div');
-        chevron.className = 'chevron';
-        div.appendChild(chevron);
-        var icon = document.createElement('span');
-        icon.className = 'icon '+(n[i].url?'stream':'circles');
-        div.appendChild(icon);
-        var text = document.createElement('div');
-        text.innerHTML = n[i].html;
-        div.appendChild(text);
-        
-        l.target = '_blank';
-        l.href = n[i].url || 'https://plus.google.com/circles';
-        l.appendChild(div);
-        
-        document.getElementById('container').appendChild(l);
-      }
+    if(localStorage.slitecache){
+      document.getElementById('container').innerHTML = localStorage.slitecache;
     }
-    xhr.send();
+    function load_notifications(){
+      var xhr = new XMLHttpRequest();
+      xhr.open('get', 'https://plus.google.com/u/0/_/notifications/getnotificationsdata', true);
+      xhr.onload = function(){
+        var n = parseNotifications(eval(xhr.responseText.substr(5))) //TODO: use something other than EVAL to parse the malformed JSON
+        document.getElementById('container').innerHTML = '';
+        for(var i = 0; i < n.length; i++){
+          var l = document.createElement('a');
+          var div = document.createElement('div');
+          div.className = 'item '+(n[i].unread?'unread':'');
+          var img = document.createElement('img');
+          img.src = n[i].pic;
+          div.appendChild(img);
+          var chevron = document.createElement('div');
+          chevron.className = 'chevron';
+          div.appendChild(chevron);
+          var icon = document.createElement('span');
+          icon.className = 'icon '+(n[i].url?'stream':'circles');
+          div.appendChild(icon);
+          var text = document.createElement('div');
+          text.innerHTML = n[i].html;
+          div.appendChild(text);
+          
+          l.target = '_blank';
+          l.href = n[i].url || 'https://plus.google.com/circles';
+          l.appendChild(div);
+          
+          document.getElementById('container').appendChild(l);
+
+        }
+        localStorage.slitecache = document.getElementById('container').innerHTML;
+      }
+      xhr.send();
+    }
     
-  
+    function updatelastreadtime(){
+      var xhr = new XMLHttpRequest();
+      xhr.open('get', 'https://plus.google.com/notifications/all', true);
+      xhr.onload = function(){
+        var code = xhr.responseText.match(/"https:\/\/www\.google\.com\/csi"\,"([A-Za-z0-9\-_:]+)"\,\,\,/)[1];
+        var xhr2 = new XMLHttpRequest();
+        xhr2.onload = function(){
+          load_notifications()
+        }
+        xhr2.open('post', 'https://plus.google.com/u/0/_/notifications/updatelastreadtime', true);
+        xhr2.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+        xhr2.send('time='+(1000*new Date)+'&at='+code); //1000*new Date
+      }
+      xhr.send();
+    }
+
+    load_notifications()
   </script>
 </body>
 </html>
