@@ -1,0 +1,35 @@
+<script>
+var xhr = new XMLHttpRequest();
+xhr.onload = function(){
+  var num = JSON.parse(xhr.responseText.substr(5))[1];
+  drawIcon(num);
+}
+
+function drawIcon(num){
+  num += '';
+
+  var c = document.createElement('canvas').getContext('2d');
+  var none = (num.replace(/[\s0]/g,'') == '');
+  var img = new Image();
+  img.src = none ? 'img/old.png' : 'img/new.png';
+  img.onload = function(){
+    c.drawImage(img, 0, 0);
+    c.font = "bold 13px arial,sans-serif";
+    c.fillStyle = none ? '#CCC' : '#fff';
+	  if(parseInt(num) > 9 || num == '9+'){
+		  c.fillText('9+', 3, 14);
+	  }else{
+    	c.fillText(num+'', 6, 14);
+	  }
+    chrome.browserAction.setIcon({imageData: c.getImageData(0,0,19,19)})
+  }
+}
+
+function update_count(){
+  xhr.open('get','https://plus.google.com/u/0/_/n/guc',true);
+  xhr.send()
+}
+
+
+setInterval(update_count, 15 * 1000);
+</script>
