@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+  <script src="parse.js"></script>
+  <script>
+    var xhr = new XMLHttpRequest();
+    xhr.open('get', 'https://plus.google.com/u/0/_/notifications/getnotificationsdata', true);
+    xhr.onload = function(){
+      var n = parseNotifications(eval(xhr.responseText.substr(5))) //TODO: use something other than EVAL to parse the malformed JSON
+    }
+    xhr.send();
+    
+  
+  </script>
+</body>
+</html>
